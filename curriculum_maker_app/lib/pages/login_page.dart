@@ -16,29 +16,33 @@ class _LoginPageState extends State<LoginPage> {
   String message = '';
   String access = '';
   String refresh = '';
+  final _formKey = GlobalKey<FormState>();
 
 void handleLogin() async {
-    final result = await AuthService.login(username, password);
-    if (result['success']) {
-        String newAccess = result['data']['access'];
-        String newRefresh = result['data']['refresh'];
+    if (_formKey.currentState?.validate() ?? false) {
+        _formKey.currentState?.save();  
+        final result = await AuthService.login(username, password);
+        if (result['success']) {
+            String newAccess = result['data']['access'];
+            String newRefresh = result['data']['refresh'];
 
-        await TokenStorage.saveTokens(newAccess, newRefresh);
+            await TokenStorage.saveTokens(newAccess, newRefresh);
 
-        setState(() {
-        message = 'Login success';
-        access = newAccess;
-        refresh = newRefresh;
-        });
+            setState(() {
+            message = 'Login success';
+            access = newAccess;
+            refresh = newRefresh;
+            });
 
-        Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-        );
-    } else {
-        setState(() {
-        message = 'Login failed: ${result['data']}';
-        });
+            Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+            );
+        } else {
+            setState(() {
+            message = 'Login failed: ${result['data']}';
+            });
+        }
     }
 }
 
@@ -69,21 +73,38 @@ void handleNavigate() async {
       appBar: AppBar(title: Text('Log In')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(onChanged: (val) => username = val, decoration: InputDecoration(labelText: 'Username')),
-            TextField(onChanged: (val) => password = val, decoration: InputDecoration(labelText: 'Password'), obscureText: true),
-            ElevatedButton(onPressed: handleLogin, child: Text('Log In')),
-            TextButton(
-                onPressed: handleNavigate,
-                child: Text(
-                    'アカウントをお持ちでない方はこちら',
-                    style: TextStyle(decoration: TextDecoration.underline),
+        child: Form(
+            key: _formKey,
+            child: Column(
+            children: [
+                TextFormField(
+                    decoration: InputDecoration(labelText: 'Username'),
+                    onSaved: (val) => username = val ?? '',
+                    validator: (val) => val == null || val.isEmpty ? 'Please enter username' : null,
+                    textInputAction: TextInputAction.next,
                 ),
+                TextFormField(
+                    decoration: InputDecoration(labelText: 'Password'),
+                    obscureText: true,
+                    onSaved: (val) => password = val ?? '',
+                    validator: (val) => val == null || val.isEmpty ? 'Please enter password' : null,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                    handleLogin();  // Enter押したら送信
+                    },
+                ),
+                ElevatedButton(onPressed: handleLogin, child: Text('Log In')),
+                TextButton(
+                    onPressed: handleNavigate,
+                    child: Text(
+                        'アカウントをお持ちでない方はこちら',
+                        style: TextStyle(decoration: TextDecoration.underline),
+                    ),
+                ),
+                SizedBox(height: 10),
+                Text(message, style: TextStyle(color: Colors.red)),
+            ],
             ),
-            SizedBox(height: 10),
-            Text(message, style: TextStyle(color: Colors.red)),
-          ],
         ),
       ),
     );

@@ -40,4 +40,22 @@ class AuthService {
       return {'success': false, 'data': data};
     }
   }
+
+  static Future<String?> fetchUsername(String accessToken) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/home/'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['username'];
+    } else {
+      print('Failed to fetch username. Status: ${response.statusCode}');
+      return null;
+    }
+  }
 }
