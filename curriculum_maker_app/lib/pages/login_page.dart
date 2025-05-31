@@ -92,17 +92,33 @@ void handleNavigate() async {
                     onFieldSubmitted: (_) {
                     handleLogin();  // Enter押したら送信
                     },
-                ),
-                ElevatedButton(onPressed: handleLogin, child: Text('Log In')),
-                TextButton(
+                    ),
+                    ElevatedButton(
+                    onPressed: handleLogin,
+                    child: Text(
+                        'Log In',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    ),
+                    TextButton(
                     onPressed: handleNavigate,
                     child: Text(
                         'アカウントをお持ちでない方はこちら',
-                        style: TextStyle(decoration: TextDecoration.underline),
+                        style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.w900,
+                        ),
                     ),
-                ),
-                SizedBox(height: 10),
-                Text(message, style: TextStyle(color: Colors.red)),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                    message,
+                    style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w900,
+                    ),
+                    ),
+
             ],
             ),
         ),
