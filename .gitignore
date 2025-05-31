@@ -1,0 +1,110 @@
+# --- Django/DRF関連 ---
+
+# Python関連
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# virtualenv関連
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Django関連
+*.sqlite3
+*.log
+db.sqlite3
+media/
+staticfiles/
+static/
+local_settings.py
+
+# Django migrations
+*/migrations/*.pyc
+*/migrations/*.py[cod]
+*/migrations/__pycache__/
+
+# PyCharmやVSCodeの設定ファイル
+.vscode/
+.idea/
+*.iml
+
+# mypy cache
+.mypy_cache/
+
+# coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# pytest cache
+.pytest_cache/
+
+# celery beat schedule file
+celerybeat-schedule
+
+# dotenvファイル
+.env
+.env.*
+
+# --- Flutter関連 ---
+
+# Build outputs
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+.flutter-plugins
+
+# iOS関連
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/App.framework
+ios/Flutter/engine/
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
+ios/Flutter/Flutter.xcworkspace/
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcshareddata/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Android関連
+.android/
+app/build/
+android/.gradle/
+android/app/*.iml
+android/app/src/debug/
+android/local.properties
+*.keystore
+
+# IntelliJ IDEA / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/
+
+# Dart / Flutter
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+
+# Generated files
+flutter_export_environment.sh
+flutter_build/
