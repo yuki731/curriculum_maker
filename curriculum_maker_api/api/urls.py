@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignupView, HomeView
+from .views import SignupView, HomeView, CurriculumListCreateView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -11,4 +11,5 @@ urlpatterns = [
     # アクセストークンのリフレッシュ
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('home/', HomeView.as_view(), name='home'),
+    path('curriculum/', CurriculumListCreateView.as_view(), name='curriculum'),
 ]
