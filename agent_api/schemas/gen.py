@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class UserRequest(BaseModel):
-    keyword: str
+    user_message: str
     category: str
     period: str
 
@@ -13,3 +13,4 @@ class ModelResponse(BaseModel):
     message: str
     video_urls: List[str]
     video_lengths: List[str]
+    titles: List[str]
