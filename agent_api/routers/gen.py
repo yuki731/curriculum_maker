@@ -87,9 +87,6 @@ async def gen(user_request: gen_schema.UserRequest):
         message = videos
     print(message)
 
-    #chat = client.chats.create(model="gemma-3-27b-it")
-    #response = chat.send_message("こんにちは！")
-    #response = chat.send_message("海老名駅の近くにあるおいしいお店を教えて！")
     return gen_schema.ModelResponse(message=message,
                                     video_urls=["url1","url2"],
                                     video_lengths=["0:00","0:00"])
