@@ -121,4 +121,41 @@ static Future<List<Map<String, dynamic>>> fetchCurriculums() async {
   return await _doRequest(accessToken);
 }
 
+static Future<List<Map<String, dynamic>>> fetchMoviesByCurriculumId(int id) async {
+  final tokens = await TokenStorage.getTokens();
+  String? accessToken = tokens['access'];
+  final refreshToken = tokens['refresh'];
+
+  Future<List<Map<String, dynamic>>> _doRequest(String accessToken) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/movie/$id/'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      if (data is List) {
+        return data.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList();
+      } else {
+        throw Exception('Unexpected response format: ${response.body}');
+      }
+    } else if (response.statusCode == 401 && refreshToken != null) {
+      final refreshed = await refresh(refreshToken);
+      final newAccess = refreshed['access'];
+      if (newAccess != null) {
+        return _doRequest(newAccess); // retry
+      }
+    }
+
+    throw Exception('Failed to load movies: ${response.statusCode} ${response.body}');
+  }
+
+  if (accessToken == null) throw Exception('Access token is missing');
+  return await _doRequest(accessToken);
+}
+
+
 }
