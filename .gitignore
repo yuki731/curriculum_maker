@@ -108,3 +108,8 @@ android/local.properties
 # Generated files
 flutter_export_environment.sh
 flutter_build/
+
+# --- langchain関連 ---
+
+# Chroma
+db_test_dir/
