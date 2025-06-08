@@ -25,4 +25,4 @@ class CurriculumSerializer(serializers.ModelSerializer):
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ['id', 'curriculum', 'url', 'title']
+        fields = ['id', 'curriculum', 'url', 'title', 'status']

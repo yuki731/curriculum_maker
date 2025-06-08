@@ -13,4 +13,5 @@ urlpatterns = [
     path('home/', HomeView.as_view()),
     path('curriculum/', CurriculumListCreateView.as_view()),
     path('movie/<int:pk>/', MovieView.as_view()),
+    path('movie/', MovieView.as_view()),
 ]
