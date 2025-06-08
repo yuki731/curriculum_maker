@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
   final Map<String, dynamic> curriculum;
 
-  const CurriculumDetailPage({required this.curriculum, Key? key}) : super(key: key);
+  CurriculumDetailPage({required this.curriculum, Key? key}) : super(key: key);
 
   @override
   _CurriculumDetailPageState createState() => _CurriculumDetailPageState();
@@ -13,6 +13,7 @@ class CurriculumDetailPage extends StatefulWidget {
 
 class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
   List<Map<String, dynamic>> movies = [];
+  List<bool> isCheckedList = [];
   Map<String, YoutubePlayerController> controllers = {};
 
   @override
@@ -24,8 +25,10 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
   void _loadMovies() async {
     try {
       final result = await AuthService.fetchMoviesByCurriculumId(widget.curriculum['id']);
+      final movieList = List<Map<String, dynamic>>.from(result);
       setState(() {
-        movies = List<Map<String, dynamic>>.from(result);
+        movies = movieList;
+        isCheckedList = movieList.map((movie) => movie['status'] == true).toList();
       });
       _initControllers();
     } catch (e) {
@@ -35,19 +38,24 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
 
   void _initControllers() {
     for (var movie in movies) {
-      final videoId = YoutubePlayer.convertUrlToId(movie['url']);
+      final videoId = YoutubePlayerController.convertUrlToId(movie['url']);
       if (videoId != null && !controllers.containsKey(videoId)) {
-        controllers[videoId] = YoutubePlayerController(
-          initialVideoId: videoId,
-          flags: YoutubePlayerFlags(autoPlay: false, mute: false),
+        controllers[videoId] = YoutubePlayerController.fromVideoId(
+          videoId: videoId,
+          autoPlay: false,
+          params: const YoutubePlayerParams(showFullscreenButton: true),
         );
       }
     }
   }
 
-  // YouTube動画を表示するダイアログを開くメソッド
-  void _showYoutubeDialog(String videoId, YoutubePlayerController controller) {
 
+  void _showYoutubeDialog(String videoId) {
+    final controller = YoutubePlayerController.fromVideoId(
+      videoId: videoId,
+      autoPlay: true,
+      params: const YoutubePlayerParams(showFullscreenButton: true),
+    );
     showDialog(
       context: context,
       builder: (context) {
@@ -60,24 +68,21 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
           content: Container(
             width: playerWidth,
             height: playerHeight,
-            child: YoutubePlayerBuilder(
-              player: YoutubePlayer(
+            child: YoutubePlayerControllerProvider(
+              controller: controller,
+              child: YoutubePlayer(
                 controller: controller,
-                showVideoProgressIndicator: true,
-                onReady: () {
-                  print("Player is ready");
-                },
+                aspectRatio: 16 / 9,
               ),
-              builder: (context, player) => player,
             ),
           ),
           actions: [
             TextButton(
-              child: Text("閉じる"),
+              child: const Text("閉じる"),
               onPressed: () {
-                controller.pause();
+                controller.pauseVideo();
                 Navigator.of(context).pop();
-                controller.dispose();
+                controller.close();
               },
             )
           ],
@@ -86,27 +91,63 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
     );
   }
 
-  Widget buildMovieCard(Map<String, dynamic> movie) {
-    String title = movie['title'] ?? 'タイトルなし';
-    String url = movie['url'] ?? '';
+  String? extractYoutubeId(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return null;
 
-    final videoId = YoutubePlayer.convertUrlToId(url);
-    final controller = videoId != null ? controllers[videoId] : null;
+    if (uri.host.contains('youtu.be')) {
+      return uri.pathSegments.first;
+    }
+
+    if (uri.host.contains('youtube.com')) {
+      return uri.queryParameters['v'];
+    }
+
+    return null;
+}
+
+  Widget buildMovieCard(int index, Map<String, dynamic> movie) {
+    String title = movie['title'] ?? 'タイトル不明';
+    String url = movie['url'];
+    final videoId = extractYoutubeId(url);
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         title: Text(title),
+        trailing: Checkbox(
+          value: isCheckedList[index],
+          onChanged: (bool? value) async {
+            final newStatus = value ?? false;
+
+            setState(() {
+              isCheckedList[index] = newStatus;
+            });
+
+            try {
+              await AuthService.updateMovieStatus(
+                widget.curriculum['id'],
+                movies[index]['id'],
+                newStatus,
+              );
+            } catch (e) {
+              print('ステータス更新失敗: $e');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('ステータス更新に失敗しました')),
+              );
+            }
+          },
+        ),
         onTap: () {
-          if (videoId != null && controller != null) {
-            _showYoutubeDialog(videoId, controller);
+          if (videoId != null) {
+            _showYoutubeDialog(videoId);
           } else {
-            print("無効なYouTube URL: $url");
+            print("無効なYouTube URL: $url , $videoId");
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("無効なYouTube動画URLです")),
+              const SnackBar(content: Text("無効なYouTube動画URLです")),
             );
           }
         },
@@ -120,8 +161,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
       appBar: AppBar(title: Text(widget.curriculum['name'] ?? 'カリキュラム詳細')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: movies.map((movie) => buildMovieCard(movie)).toList(),
+        child: ListView.builder(
+          itemCount: movies.length,
+          itemBuilder: (context, index) {
+            return buildMovieCard(index, movies[index]);
+          }
         ),
       ),
     );

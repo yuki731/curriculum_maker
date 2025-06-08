@@ -41,11 +41,22 @@ class CurriculumListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = CurriculumSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)  # ログインユーザーを自動設定
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        title = request.data['title']
+        movies = request.data['movies']
+        user = request.user
+        
+        curriculum = Curriculum.objects.create(
+            user = user,
+            name = title
+        )
+        
+        for movie in movies:
+            Movie.objects.create(
+                curriculum = curriculum,
+                url = movie['url'],
+                title = movie['title']
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MovieView(APIView):
     permission_classes = [IsAuthenticated]
@@ -54,3 +65,27 @@ class MovieView(APIView):
         movies = Movie.objects.filter(curriculum=curriculum)
         serializer = MovieSerializer(movies, many=True)
         return Response(serializer.data, status=200)
+    
+    def post(self, request):
+        curriculum_id = request.data['curriculum_id']
+        movie_id = request.data['movie_id']
+        movie_status = request.data['status']
+        
+        movie = Movie.objects.get(id=movie_id)
+        movie.status = movie_status
+        movie.save()
+        
+        curriculum = Curriculum.objects.get(id=curriculum_id)
+        movies = Movie.objects.filter(curriculum=curriculum)
+        
+        fin = 0
+        for m in movies:
+            fin += m.status
+        
+        progress = (fin / len(movies)) * 100
+        curriculum.progress = int(progress)
+        curriculum.save()
+        return Response({"message": "Status updated"}, status=status.HTTP_200_OK)
+
+        
+        

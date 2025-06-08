@@ -17,4 +17,5 @@ class Movie(models.Model):
     curriculum = models.ForeignKey(Curriculum, on_delete=models.CASCADE, related_name='movie')
     url = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
+    status = models.BooleanField(default=False)
     
