@@ -9,6 +9,6 @@ class CurriculumAdmin(admin.ModelAdmin):
 
 @admin.register(Movie)
 class MoviesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'curriculum', 'url')
+    list_display = ('id', 'curriculum', 'url', 'status')
     list_filter = ('curriculum',)
     search_fields = ('url',)
