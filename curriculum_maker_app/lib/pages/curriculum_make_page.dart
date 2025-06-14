@@ -69,7 +69,7 @@ class _CurriculumInputPageState extends State<CurriculumInputPage> {
                         TextFormField(
                           controller: _periodController,
                           decoration: const InputDecoration(
-                            labelText: '学習時間の目安（例: 30日）',
+                            labelText: '学習時間の目安（例: 8時間）',
                           ),
                           validator: (value) =>
                               value == null || value.isEmpty ? '入力してください' : null,
