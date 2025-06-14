@@ -1,21 +1,45 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/token_storage.dart';
+import '../main.dart';
+import './curriculum_detail_page.dart';
+import './curriculum_make_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // 前の画面から戻ってきた（この画面が再表示された）時の処理
+    _loadCurriculums();
+  }
+
   String username = '読み込み中...';
-  List<Map<String, dynamic>> curriculums = []; // 追加
+  List<Map<String, dynamic>> curriculums = [];
 
   @override
   void initState() {
     super.initState();
     _loadUsername();
-    _loadCurriculums(); // 追加
+    _loadCurriculums();
   }
 
   void _loadUsername() async {
@@ -55,47 +79,87 @@ class _HomePageState extends State<HomePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        title: Text(name, style: TextStyle(fontFamily: 'NotoSansJP', fontWeight: FontWeight.normal, fontSize: 16)),
+        title: Text(name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 10),
-            Text('進捗: ${(progress).toStringAsFixed(1)}%', style: TextStyle(fontFamily: 'NotoSansJP', fontWeight: FontWeight.w600, fontSize: 16)),
+            Text('進捗: ${(progress).toStringAsFixed(1)}%'),
             SizedBox(height: 8),
             LinearProgressIndicator(
-              value: progress/100,
+              value: progress / 100,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
               minHeight: 10,
             ),
           ],
         ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  CurriculumDetailPage(curriculum: curriculum),
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  void handleNavigate() async {
+    Navigator.push (
+        context,
+        MaterialPageRoute(builder: (context) => CurriculumInputPage()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final ongoing = curriculums.where((c) => c['status'] == false).toList();
+    final completed = curriculums.where((c) => c['status'] == true).toList();
+
     return Scaffold(
-      appBar: AppBar(title: Text('Home')),
+      appBar: AppBar(
+        title: Text('Home'),
+        actions: [
+          TextButton(
+            onPressed: handleNavigate,
+            child: Text(
+              'カリキュラムを作成',
+              style: TextStyle(
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: ListView(
           children: [
             Text(
               'ようこそ、$username さん！',
               style: TextStyle(fontSize: 24),
             ),
             SizedBox(height: 20),
-            Expanded(
-              child: curriculums.isEmpty
-                  ? Center(child: Text('学習を始める'))
-                  : ListView.builder(
-                      itemCount: curriculums.length,
-                      itemBuilder: (context, index) =>
-                          buildCurriculumCard(curriculums[index]),
-                    ),
-            ),
+
+            Text('📘 学習中のカリキュラム',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            ...ongoing.isEmpty
+                ? [Text('現在、学習中のカリキュラムはありません')]
+                : ongoing.map(buildCurriculumCard).toList(),
+
+            SizedBox(height: 20),
+            Text('✅ 学習済みのカリキュラム',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            ...completed.isEmpty
+                ? [Text('まだ学習を完了したカリキュラムはありません')]
+                : completed.map(buildCurriculumCard).toList(),
           ],
         ),
       ),
