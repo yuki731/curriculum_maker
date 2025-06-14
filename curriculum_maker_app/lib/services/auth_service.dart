@@ -5,6 +5,7 @@ import '../services/token_storage.dart';
 
 
 const baseUrl = "http://127.0.0.1:8000"; // ← ここは実際のAPI URLに変更
+const baseUrl2 = "http://127.0.0.1:7000";
 
 class AuthService {
   static Future<Map<String, dynamic>> signup(String username, String password) async {
@@ -121,4 +122,110 @@ static Future<List<Map<String, dynamic>>> fetchCurriculums() async {
   return await _doRequest(accessToken);
 }
 
+static Future<List<Map<String, dynamic>>> fetchMoviesByCurriculumId(int id) async {
+  final tokens = await TokenStorage.getTokens();
+  String? accessToken = tokens['access'];
+  final refreshToken = tokens['refresh'];
+
+  Future<List<Map<String, dynamic>>> _doRequest(String accessToken) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/movie/$id/'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      if (data is List) {
+        return data.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList();
+      } else {
+        throw Exception('Unexpected response format: ${response.body}');
+      }
+    } else if (response.statusCode == 401 && refreshToken != null) {
+      final refreshed = await refresh(refreshToken);
+      final newAccess = refreshed['access'];
+      if (newAccess != null) {
+        return _doRequest(newAccess); // retry
+      }
+    }
+
+    throw Exception('Failed to load movies: ${response.statusCode} ${response.body}');
+  }
+
+  if (accessToken == null) throw Exception('Access token is missing');
+  return await _doRequest(accessToken);
+}
+
+static Future<List<Map<String, dynamic>>> createCurriculums(String message, String period) async {
+  final tokens = await TokenStorage.getTokens();
+  String? accessToken = tokens['access'];
+  final refreshToken = tokens['refresh'];
+
+  Future<List<Map<String, dynamic>>> _doRequest(String accessToken) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl2/gen/'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'message': message, 'period': period, 'accessToken': accessToken, 'refreshToken': refreshToken}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      if (data is List) {
+        return data.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList();
+      } else {
+        throw Exception('Unexpected response format: ${response.body}');
+      }
+    } else if (response.statusCode == 401 && refreshToken != null) {
+      final refreshed = await refresh(refreshToken);
+      final newAccess = refreshed['access'];
+      if (newAccess != null) {
+        return _doRequest(newAccess); // retry
+      }
+    }
+
+    throw Exception('Failed to load curriculums: ${response.statusCode} ${response.body}');
+  }
+
+  if (accessToken == null) throw Exception('Access token is missing');
+  return await _doRequest(accessToken);
+}
+
+static Future<List<Map<String, dynamic>>> updateMovieStatus(int curriculumId, int movieId, bool status) async {
+  final tokens = await TokenStorage.getTokens();
+  String? accessToken = tokens['access'];
+  final refreshToken = tokens['refresh'];
+
+  Future<List<Map<String, dynamic>>> _doRequest(String accessToken) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/movie/'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'curriculum_id': curriculumId, 'movie_id': movieId, 'status': status}),
+    );
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // 成功時は何らかのリストを返す（空でも良い）
+      return []; // or [{'status': 'ok'}] など、呼び出し側に合わせて調整
+    }
+
+    if (response.statusCode == 401 && refreshToken != null) {
+      final refreshed = await refresh(refreshToken);
+      final newAccess = refreshed['access'];
+      if (newAccess != null) {
+        return _doRequest(newAccess); // retry
+      }
+    }
+
+    throw Exception('Failed to update movie status: ${response.statusCode} ${response.body}');
+  }
+
+  if (accessToken == null) throw Exception('Access token is missing');
+  return await _doRequest(accessToken);
+}
 }
