@@ -6,7 +6,7 @@ class Curriculum(models.Model):
     name = models.CharField(max_length=255)
     progress = models.IntegerField(default=0)
     status = models.BooleanField(default=False)
-
+    detail = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -18,4 +18,6 @@ class Movie(models.Model):
     url = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     status = models.BooleanField(default=False)
+    feedback = models.IntegerField(default=3)
+
     

@@ -195,7 +195,7 @@ static Future<List<Map<String, dynamic>>> createCurriculums(String message, Stri
   return await _doRequest(accessToken);
 }
 
-static Future<List<Map<String, dynamic>>> updateMovieStatus(int curriculumId, int movieId, bool status) async {
+static Future<List<Map<String, dynamic>>> updateMovieStatus(int curriculumId, int movieId, bool status, double rating) async {
   final tokens = await TokenStorage.getTokens();
   String? accessToken = tokens['access'];
   final refreshToken = tokens['refresh'];
@@ -207,7 +207,7 @@ static Future<List<Map<String, dynamic>>> updateMovieStatus(int curriculumId, in
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'curriculum_id': curriculumId, 'movie_id': movieId, 'status': status}),
+      body: jsonEncode({'curriculum_id': curriculumId, 'movie_id': movieId, 'status': status, 'rating': rating}),
     );
     if (response.statusCode == 200 || response.statusCode == 204) {
       // 成功時は何らかのリストを返す（空でも良い）

@@ -19,10 +19,10 @@ class SignupSerializer(serializers.ModelSerializer):
 class CurriculumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Curriculum
-        fields = ['id', 'user', 'name', 'progress', 'created_at', 'updated_at', 'status']
+        fields = ['id', 'user', 'name', 'progress', 'detail', 'created_at', 'updated_at', 'status']
         read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'status']
 
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ['id', 'curriculum', 'url', 'title', 'status']
+        fields = ['id', 'curriculum', 'url', 'title', 'status', 'feedback']

@@ -21,9 +21,13 @@ class MyApp extends StatelessWidget {
       navigatorObservers: [routeObserver],
       initialRoute: '/',
       theme: ThemeData(
-        textTheme: GoogleFonts.openSansTextTheme(), // Open Sans 使用
-        // textTheme: GoogleFonts.robotoTextTheme(), // Roboto 使用したいときはこちら
-        // fontFamily: 'NotoSansJP',  // ここで日本語フォント指定
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.white,          // ★白を指定
+          brightness: Brightness.light,     // 明るいテーマ
+        ),
+        scaffoldBackgroundColor: Colors.white,  // 画面全体の背景も白に
+        useMaterial3: true,
+        textTheme: GoogleFonts.openSansTextTheme(),
       ),
       routes: {
         '/home': (context) => HomePage(),
