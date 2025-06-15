@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
   final Map<String, dynamic> curriculum;
@@ -15,6 +16,41 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
   List<Map<String, dynamic>> movies = [];
   List<bool> isCheckedList = [];
   Map<String, YoutubePlayerController> controllers = {};
+
+
+  Future<double?> _showRatingDialog() async {
+    double tempRating = 3; // 初期値はお好みで
+    return showDialog<double>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return AlertDialog(
+            title: const Text('動画のフィードバックをお願いします', style: TextStyle(fontSize: 18),),
+            content: RatingBar.builder(
+              initialRating: tempRating,
+              minRating: 1,
+              direction: Axis.horizontal,
+              allowHalfRating: true,
+              itemCount: 5,
+              itemBuilder: (context, _) => const Icon(Icons.star, size: 32),
+              onRatingUpdate: (rating) => setState(() => tempRating = rating),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx), // キャンセル→null
+                child: const Text('キャンセル'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, tempRating), // 星数を返す
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
 
   @override
   void initState() {
@@ -123,6 +159,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
           onChanged: (bool? value) async {
             final newStatus = value ?? false;
 
+            // 星いくつかを尋ねる
+            final rating = await _showRatingDialog();
+            if (rating == null) return; // キャンセル
+
+
             setState(() {
               isCheckedList[index] = newStatus;
             });
@@ -132,6 +173,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
                 widget.curriculum['id'],
                 movies[index]['id'],
                 newStatus,
+                rating,
               );
             } catch (e) {
               print('ステータス更新失敗: $e');

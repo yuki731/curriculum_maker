@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignupView, HomeView, CurriculumListCreateView, MovieView
+from .views import SignupView, HomeView, CurriculumListCreateView, MovieView, FeedbackView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -14,4 +14,5 @@ urlpatterns = [
     path('curriculum/', CurriculumListCreateView.as_view()),
     path('movie/<int:pk>/', MovieView.as_view()),
     path('movie/', MovieView.as_view()),
+    path('feedback/', FeedbackView.as_view()),
 ]

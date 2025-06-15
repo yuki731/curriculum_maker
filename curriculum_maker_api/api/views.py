@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from .models import Curriculum, Movie
 from .serializers import SignupSerializer, CurriculumSerializer, MovieSerializer
@@ -43,11 +44,13 @@ class CurriculumListCreateView(APIView):
     def post(self, request):
         title = request.data['title']
         movies = request.data['movies']
+        message = request.data['massage']
         user = request.user
         
         curriculum = Curriculum.objects.create(
             user = user,
-            name = title
+            name = title,
+            detail = message
         )
         
         for movie in movies:
@@ -70,9 +73,11 @@ class MovieView(APIView):
         curriculum_id = request.data['curriculum_id']
         movie_id = request.data['movie_id']
         movie_status = request.data['status']
+        rating = request.data['rating']
         
         movie = Movie.objects.get(id=movie_id)
         movie.status = movie_status
+        movie.feedback = rating
         movie.save()
         
         curriculum = Curriculum.objects.get(id=curriculum_id)
@@ -87,5 +92,21 @@ class MovieView(APIView):
         curriculum.save()
         return Response({"message": "Status updated"}, status=status.HTTP_200_OK)
 
-        
-        
+class FeedbackView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        url = request.query_params.get('url')
+        data = Movie.objects.filter(url=url).aggregate(avg=Avg('feedback'))
+        score = data['avg']  # 該当行が無いときは None
+
+        if score is None:
+            return Response({"score": 3}, status=status.HTTP_200_OK)
+        return Response({"score": score}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        feedback = request.data['feedback']
+        movie_id = request.data['movie_id']
+        movie = Movie.objects.get(id=movie_id)
+        movie.feedback = feedback
+        movie.save()
+        return Response({'message': 'Success to save feedback!'}, status=status.HTTP_200_OK)
