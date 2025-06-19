@@ -102,6 +102,7 @@ async def gen(user_request: gen_schema.UserRequest):
             contents=[f"{CURRICULUM_INSTRUCTION_PROMPT}{videos}\n{CURRICULUM_FORMAT}"]
         ).text
         final_movie_titles = re.findall(r'タイトル:(.*?)\n動画説明', message) #list
+        final_movie_titles = [title.strip() for title in final_movie_titles]
         print(final_movie_titles)
         movies = [{"title":movie_title, "url":title_url_dict[movie_title]} for movie_title in final_movie_titles]
         title = re.findall(r'# タイトル:(.*?)\n', message)[0]
