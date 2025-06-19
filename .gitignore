@@ -114,3 +114,5 @@ flutter_build/
 # Chroma
 db_test_dir/
 chroma_db_youtube/
+
+*.out

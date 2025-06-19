@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../services/token_storage.dart';
 
+// const baseUrl = "http://127.0.0.1:8000";
+// const baseUrl2 = "http://127.0.0.1:7000";
 
-const baseUrl = "http://127.0.0.1:8000"; // ← ここは実際のAPI URLに変更
-const baseUrl2 = "http://127.0.0.1:7000";
+const baseUrl = "http://35.243.72.181/api";
+const baseUrl2 = "http://35.243.72.181/agent";
 
 class AuthService {
   static Future<Map<String, dynamic>> signup(String username, String password) async {

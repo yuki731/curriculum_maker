@@ -13,7 +13,7 @@ import curriculum_maker_api.api.youtube_to_db.updateChromaDB as updateChromaDB
 YOUTUBE_API_KEY = ""
 GEMINI_API_KEY = ""
 PROJECT_ID = ""
-REGION = "asia-northeast1"
+REGION = ""
 PERSIST_DIRECTORY = ""
 COLLECTION_NAME = "youtube_videos_vertex_ai_test20250607"
 DRF_URL = ""
