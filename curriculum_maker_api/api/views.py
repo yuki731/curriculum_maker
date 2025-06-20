@@ -44,7 +44,7 @@ class CurriculumListCreateView(APIView):
     def post(self, request):
         title = request.data['title']
         movies = request.data['movies']
-        message = request.data['massage']
+        message = request.data['message']
         user = request.user
         
         curriculum = Curriculum.objects.create(
@@ -59,7 +59,9 @@ class CurriculumListCreateView(APIView):
                 url = movie['url'],
                 title = movie['title']
             )
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = CurriculumSerializer(curriculum)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class MovieView(APIView):
     permission_classes = [IsAuthenticated]
@@ -89,6 +91,8 @@ class MovieView(APIView):
         
         progress = (fin / len(movies)) * 100
         curriculum.progress = int(progress)
+        if progress > 99:
+            curriculum.status = True
         curriculum.save()
         return Response({"message": "Status updated"}, status=status.HTTP_200_OK)
 

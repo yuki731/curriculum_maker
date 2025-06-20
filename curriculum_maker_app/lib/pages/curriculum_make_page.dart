@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../services/auth_service.dart';
 import 'curriculum_detail_page.dart';
+import 'curriculum_info_page.dart';
 
 
 class CurriculumInputPage extends StatefulWidget {
@@ -17,7 +18,7 @@ class _CurriculumInputPageState extends State<CurriculumInputPage> {
   final _periodController = TextEditingController();
 
   bool _loading = false;
-  List<Map<String, dynamic>>? _curriculums;
+  Map<String, dynamic>? _curriculums;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -28,15 +29,15 @@ class _CurriculumInputPageState extends State<CurriculumInputPage> {
     setState(() => _loading = true);
 
     try {
-      final result = await AuthService.createCurriculums(message, period);
-      setState(() => _curriculums = result);
+      final curriculum = await AuthService.createCurriculums(message, period);
+      setState(() => _curriculums = curriculum);
       if (!mounted) return;
-      // await Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (_) => CurriculumInfoPage(curriculums: result),
-      //   ),
-      // );
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CurriculumInfoPage(curriculum: curriculum),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('エラーが発生しました: $e')),

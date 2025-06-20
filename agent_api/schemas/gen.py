@@ -4,9 +4,11 @@ from pydantic import BaseModel, Field
 
 
 class UserRequest(BaseModel):
-    user_message: str
-    category: str
+    message: str
+    # category: str
     period: str
+    accessToken:str
+    refreshToken:str
 
 
 class ModelResponse(BaseModel):

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'curriculum_info_page.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
   final Map<String, dynamic> curriculum;
@@ -197,10 +198,34 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
     );
   }
 
+  void handleNavigate() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CurriculumInfoPage(curriculum: widget.curriculum),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.curriculum['name'] ?? 'カリキュラム詳細')),
+      appBar: AppBar(
+        title: Text(widget.curriculum['name'] ?? 'カリキュラム詳細'),
+        actions: [
+          TextButton(
+            onPressed: handleNavigate,
+            child: Text(
+              'このカリキュラムについて',
+              style: TextStyle(
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(

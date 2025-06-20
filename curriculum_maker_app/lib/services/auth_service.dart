@@ -160,42 +160,65 @@ static Future<List<Map<String, dynamic>>> fetchMoviesByCurriculumId(int id) asyn
   return await _doRequest(accessToken);
 }
 
-static Future<List<Map<String, dynamic>>> createCurriculums(String message, String period) async {
+static Future<Map<String, dynamic>> createCurriculums(
+    String message, String period) async {
   final tokens = await TokenStorage.getTokens();
   String? accessToken = tokens['access'];
   final refreshToken = tokens['refresh'];
 
-  Future<List<Map<String, dynamic>>> _doRequest(String accessToken) async {
+  // ❶ 戻り値を Map 固定に
+  Future<Map<String, dynamic>> _doRequest(String accessToken) async {
     final response = await http.post(
       Uri.parse('$baseUrl2/gen/'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'message': message, 'period': period, 'accessToken': accessToken, 'refreshToken': refreshToken}),
+      body: jsonEncode({
+        'message': message,
+        'period': period,
+        'accessToken': accessToken,
+        'refreshToken': refreshToken
+      }),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
-      if (data is List) {
-        return data.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList();
-      } else {
-        throw Exception('Unexpected response format: ${response.body}');
+
+      // ❷ API が Map を返す想定
+      if (data is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(data);
       }
-    } else if (response.statusCode == 401 && refreshToken != null) {
+
+      // もし List がくるケースも一応ハンドリング
+      if (data is List && data.isNotEmpty && data.first is Map) {
+        return Map<String, dynamic>.from(data.first);
+      }
+
+      throw Exception('Unexpected response format: ${response.body}');
+    }
+
+    // 401 → リフレッシュして再試行
+    if (response.statusCode == 401 && refreshToken != null) {
       final refreshed = await refresh(refreshToken);
       final newAccess = refreshed['access'];
       if (newAccess != null) {
-        return _doRequest(newAccess); // retry
+        return _doRequest(newAccess); // retry with new token
       }
     }
 
-    throw Exception('Failed to load curriculums: ${response.statusCode} ${response.body}');
+    throw Exception(
+        'Failed to load curriculum: ${response.statusCode} ${response.body}');
   }
 
-  if (accessToken == null) throw Exception('Access token is missing');
+  if (accessToken == null) {
+    throw Exception('Access token is missing');
+  }
+
+  // ❸ 呼び出し部も Map 固定
   return await _doRequest(accessToken);
 }
+
 
 static Future<List<Map<String, dynamic>>> updateMovieStatus(int curriculumId, int movieId, bool status, double rating) async {
   final tokens = await TokenStorage.getTokens();
