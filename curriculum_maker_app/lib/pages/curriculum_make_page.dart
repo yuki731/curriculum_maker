@@ -104,8 +104,8 @@ class _CurriculumInputPageState extends State<CurriculumInputPage> {
                     children: [
                       Lottie.asset(
                         'assets/loading.json',
-                        width: 150,
-                        height: 150,
+                        width: 500,
+                        height: 500,
                         repeat: true,
                       ),
                       const SizedBox(height: 12),

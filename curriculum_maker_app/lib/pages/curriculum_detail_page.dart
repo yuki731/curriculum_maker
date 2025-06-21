@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'curriculum_info_page.dart';
+import 'home_page.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
   final Map<String, dynamic> curriculum;
@@ -217,6 +218,23 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
             onPressed: handleNavigate,
             child: Text(
               'このカリキュラムについて',
+              style: TextStyle(
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => HomePage()),
+                (route) => false, // すべての既存ルートを削除
+              );
+            },
+            child: const Text(
+              'ホームに戻る',
               style: TextStyle(
                 decoration: TextDecoration.underline,
                 fontWeight: FontWeight.w900,

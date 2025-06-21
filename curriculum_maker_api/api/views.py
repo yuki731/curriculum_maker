@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from .models import Curriculum, Movie
-from .serializers import SignupSerializer, CurriculumSerializer, MovieSerializer
+from .serializers import SignupSerializer, CurriculumSerializer, MovieSerializer, QuizQuestion, QuizChoice
 
 class SignupView(APIView):
     def post(self, request):
@@ -93,6 +93,8 @@ class MovieView(APIView):
         curriculum.progress = int(progress)
         if progress > 99:
             curriculum.status = True
+        else:
+            curriculum.status = False
         curriculum.save()
         return Response({"message": "Status updated"}, status=status.HTTP_200_OK)
 
@@ -114,3 +116,54 @@ class FeedbackView(APIView):
         movie.feedback = feedback
         movie.save()
         return Response({'message': 'Success to save feedback!'}, status=status.HTTP_200_OK)
+    
+class QuizBulkCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        id = request.data.get('id')
+        curriculum = Curriculum.objects.get(id=id)
+        movie_titles = request.data.get('movie_titles', [])
+        quizes = request.data.get('quizes', [])
+        print(quizes)
+
+        if len(movie_titles) != len(quizes):
+            return Response(
+                {"detail": "movie_titlesとquizesの長さが一致していません"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            for i in range(len(movie_titles)):
+                movie = Movie.objects.get(curriculum=curriculum, title=movie_titles[i])
+
+                for quize in quizes[i]:
+                    # クイズ作成
+                    question = QuizQuestion.objects.create(
+                        movie=movie,
+                        prompt=quize['question']
+                    )
+
+                    correct_answer = quize['answer'].strip()
+
+                    for choice_text in quize['choices']:
+                        is_correct = (choice_text.strip() == correct_answer)
+                        QuizChoice.objects.create(
+                            question=question,
+                            text=choice_text,
+                            is_correct=is_correct
+                        )
+        except Movie.DoesNotExist:
+            return Response(
+                {"detail": f"Movie '{movie_titles[i]}' が見つかりません"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except KeyError as e:
+            return Response(
+                {"detail": f"リクエストに '{str(e)}' が含まれていません"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        print('登録完了')
+
+        return Response({"detail": "クイズ登録に成功しました"}, status=status.HTTP_201_CREATED)
+
+        
