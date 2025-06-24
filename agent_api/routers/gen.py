@@ -15,14 +15,14 @@ GEMINI_API_KEY = ""
 PROJECT_ID = ""
 REGION = ""
 PERSIST_DIRECTORY = ""
-COLLECTION_NAME = "youtube_videos_vertex_ai_test20250607"
+COLLECTION_NAME = "youtube_videos_vertex_ai_test20250622_2"
 DRF_BASE   = "http://127.0.0.1:8000"
 POST_EP    = f"{DRF_BASE}/curriculum/"
 REFRESH_EP = f"{DRF_BASE}/token/refresh/"
 
 
 
-GEN_YOUTUBE_QUERY_PROMPT = """ユーザの要望に基づいて、YouTubeから適切な動画を選びたいです。YouTubeに入力する適切な検索キーワードを出力してください。検索キーワードのみ出力してください。20文字以内にしてください。以下はユーザの要望です。
+GEN_YOUTUBE_QUERY_PROMPT = """ユーザの要望に基づいて、YouTubeから適切な動画を選びたいです。YouTubeに入力する適切な検索キーワードを出力してください。検索キーワードは20文字以内でかつ改行を含まない一行の文字列です。検索キーワードに複数単語が必要な場合は全角スペースで複数単語を区切ってください。検索キーワードのみ出力してください。以下はユーザの要望です。
 ユーザの要望："""
 
 CURRICULUM_INSTRUCTION_PROMPT = """ユーザの要望に基づいて、YouTubeから以下の動画候補を選びました。ユーザの要望に応えられるように、以下の動画候補から適切な動画を選択し順番を考え、よいカリキュラムを組んでください。また、その順番にした理由とカリキュラムのタイトルも考えてください。カリキュラムのタイトル、カリキュラム、理由は下記のMarkdown形式に沿って出力してください。カリキュラムのタイトル、カリキュラム、理由のみ出力してください。
