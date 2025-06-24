@@ -17,7 +17,7 @@ GEMINI_API_KEY = ""
 PROJECT_ID = ""
 REGION = ""
 PERSIST_DIRECTORY = ""
-COLLECTION_NAME = "youtube_videos_vertex_ai_test20250622_2"
+COLLECTION_NAME = "youtube_videos_vertex_ai_test20250625"
 DRF_BASE   = "http://127.0.0.1:8000"
 POST_EP    = f"{DRF_BASE}/curriculum/"
 POST_EP2    = f"{DRF_BASE}/quize/"
@@ -35,10 +35,12 @@ CURRICULUM_FORMAT = """# タイトル:[実際のカリキュラムのタイト�
 
 # カリキュラム:
 ## 動画１
+識別番号:...
 タイトル:...
 動画説明:...
 
 ## 動画２
+識別番号:...
 タイトル:...
 動画説明:...
 
@@ -100,8 +102,12 @@ async def gen(user_request: gen_schema.UserRequest):
 
     if search_results:
         videos = ""
-        title_url_dict = {}
-        title_id_dict = {}
+        #title_url_dict = {}
+        #title_id_dict = {}
+        tmp_id_url_dict = {}
+        tmp_id_id_dict = {}
+        tmp_id_title_dict = {}
+        tmp_id = 0
         for doc, score in search_results:
             print("-" * 20)
             print(f"スコア: {score}")
@@ -110,10 +116,15 @@ async def gen(user_request: gen_schema.UserRequest):
             print(f"URL: {doc.metadata.get('source', 'N/A')}")
             print(f"説明の冒頭: {doc.page_content[:150]}...") # 説明の冒頭を表示
             print(f"検索キーワード: {doc.metadata.get('search_keywords', 'N/A')}")
+            videos += f"識別番号:{tmp_id}\n"
             videos += f"タイトル:{doc.metadata.get('title', 'N/A')}\n"
             videos += f"動画説明:{doc.page_content[:150]}\n\n\n"
-            title_url_dict[doc.metadata.get('title', 'N/A').strip()] = doc.metadata.get('source', 'N/A')
-            title_id_dict[doc.metadata.get('title', 'N/A').strip()] = doc.metadata.get('video_id')
+            #title_url_dict[doc.metadata.get('title', 'N/A').strip()] = doc.metadata.get('source', 'N/A')
+            #title_id_dict[doc.metadata.get('title', 'N/A').strip()] = doc.metadata.get('video_id')
+            tmp_id_url_dict[str(tmp_id)] = doc.metadata.get('source', 'N/A')
+            tmp_id_id_dict[str(tmp_id)] = doc.metadata.get('video_id')
+            tmp_id_title_dict[str(tmp_id)] = doc.metadata.get('title', 'N/A')
+            tmp_id += 1
     else:
         print("関連するドキュメントは見つかりませんでした。")
         videos = "関連する動画は見つかりませんでした。"
@@ -123,11 +134,20 @@ async def gen(user_request: gen_schema.UserRequest):
             model="gemma-3-27b-it",
             contents=[f"{CURRICULUM_INSTRUCTION_PROMPT}{videos}\n{CURRICULUM_FORMAT}"]
         ).text
-        final_movie_titles = re.findall(r'タイトル:(.*?)\n動画説明', message) #list
-        final_movie_titles = [title.strip() for title in final_movie_titles]
-        print(final_movie_titles)
-        print(title_url_dict)
-        movies = [{"title":movie_title, "url":title_url_dict[movie_title.strip()]} for movie_title in final_movie_titles]
+        #final_movie_titles = re.findall(r'タイトル:(.*?)\n動画説明', message) #list
+        #final_movie_titles = [title.strip() for title in final_movie_titles]
+        final_movie_tmp_ids = re.findall(r'識別番号:(.*?)\nタイトル', message) #list
+        final_movie_tmp_ids = [tmp_id.strip() for tmp_id in final_movie_tmp_ids]
+        message = re.sub(r'^識別番号:.*\n?', '', message, flags=re.MULTILINE)
+        final_movie_titles = [tmp_id_title_dict[tmp_id] for tmp_id in final_movie_tmp_ids]
+        #print(final_movie_titles)
+        #print(title_url_dict)
+        print(final_movie_tmp_ids)
+        print(tmp_id_url_dict)
+        print(tmp_id_title_dict)
+        print(message)
+        #movies = [{"title":movie_title, "url":title_url_dict[movie_title.strip()]} for movie_title in final_movie_titles]
+        movies = [{"title":tmp_id_title_dict[tmp_id], "url":tmp_id_url_dict[tmp_id]} for tmp_id in final_movie_tmp_ids]
         title = re.findall(r'# タイトル:(.*?)\n', message)[0]
     else:
         message = videos
@@ -136,7 +156,8 @@ async def gen(user_request: gen_schema.UserRequest):
         return {"message": "該当する動画が見つかりませんでした"}
     
     quizes = []
-    video_ids = [title_id_dict[movie_title.strip()] for movie_title in final_movie_titles]
+    #video_ids = [title_id_dict[movie_title.strip()] for movie_title in final_movie_titles]
+    video_ids = [tmp_id_id_dict[tmp_id] for tmp_id in final_movie_tmp_ids]
     for i, video_id in enumerate(video_ids):
         try:
             # まず日本語字幕を取得しに行く
