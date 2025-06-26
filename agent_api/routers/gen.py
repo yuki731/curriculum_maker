@@ -20,7 +20,7 @@ PERSIST_DIRECTORY = ""
 COLLECTION_NAME = "youtube_videos_vertex_ai_test20250625"
 DRF_BASE   = "http://127.0.0.1:8000"
 POST_EP    = f"{DRF_BASE}/curriculum/"
-POST_EP2    = f"{DRF_BASE}/quize/"
+POST_EP2    = f"{DRF_BASE}/quiz/"
 REFRESH_EP = f"{DRF_BASE}/token/refresh/"
 
 
@@ -227,7 +227,7 @@ async def gen(user_request: gen_schema.UserRequest):
         quizes.append(data)
 
     print("リクエスト")
-    res = await drf_post(POST_EP, {"title":title, "movies":movies, "message":message2}, user_request.accessToken)
+    res = await drf_post(POST_EP, {"title":title, "movies":movies, "message":message}, user_request.accessToken)
     print("リクエスト１成功")
     res2 = await drf_post(POST_EP2, {'id': res.json().get('id'), 'movie_titles': final_movie_titles, 'quizes': quizes}, user_request.accessToken)
     print(res2.json().get('detail'))

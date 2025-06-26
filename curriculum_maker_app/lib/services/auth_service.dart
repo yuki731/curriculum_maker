@@ -6,8 +6,8 @@ import '../services/token_storage.dart';
 // const baseUrl = "http://127.0.0.1:8000";
 // const baseUrl2 = "http://127.0.0.1:7000";
 
-const baseUrl = "http://35.243.72.181/api";
-const baseUrl2 = "http://35.243.72.181/agent";
+const baseUrl = "https://www.curriculummaker.dev/api";
+const baseUrl2 = "https://www.curriculummaker.dev/agent";
 
 class AuthService {
   static Future<Map<String, dynamic>> signup(String username, String password) async {
@@ -253,4 +253,55 @@ static Future<List<Map<String, dynamic>>> updateMovieStatus(int curriculumId, in
   if (accessToken == null) throw Exception('Access token is missing');
   return await _doRequest(accessToken);
 }
+
+  static Future<List<Map<String, dynamic>>> fetchQuizzes(int movieId) async {
+    // 1) トークン取得
+    final tokens = await TokenStorage.getTokens(); // { access: ..., refresh: ... }
+    String? accessToken = tokens['access'];
+    final refreshToken = tokens['refresh'];
+
+    // 2) 内部リクエスト関数
+    Future<List<Map<String, dynamic>>> _doRequest(String accessToken) async {
+      final uri = Uri.parse('$baseUrl/quiz/')           // ← エンドポイント名は要調整
+          .replace(queryParameters: {'movie_id': movieId.toString()});
+
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Bearer $accessToken',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 60)); // ネットワークタイムアウト任意
+
+      // ----- 成功 -----
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        // {movie: "...", questions: [...] } を想定
+        if (data is Map && data['questions'] is List) {
+          return List<Map<String, dynamic>>.from(data['questions']);
+        }
+        throw Exception('Unexpected response format: ${response.body}');
+      }
+
+      // ----- アクセストークン失効 → リフレッシュ -----
+      if (response.statusCode == 401 && refreshToken != null) {
+        final refreshed = await refresh(refreshToken); // {access: "...", refresh: "..."}
+        final newAccess = refreshed['access'];
+        if (newAccess != null) {
+          return _doRequest(newAccess); // 再試行
+        }
+      }
+
+      // ----- それ以外はエラー -----
+      throw Exception(
+        'Failed to load quizzes: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    if (accessToken == null) throw Exception('Access token is missing');
+    return _doRequest(accessToken);
+  }
+
 }

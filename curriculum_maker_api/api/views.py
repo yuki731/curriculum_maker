@@ -119,9 +119,44 @@ class FeedbackView(APIView):
     
 class QuizBulkCreateView(APIView):
     permission_classes = [IsAuthenticated]
+    def get(self, request):
+        movie_id = request.query_params.get("movie_id")
+        if not movie_id or not movie_id.isdigit():
+            return Response(
+                {"detail": "`movie_id` must be integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        movie = get_object_or_404(Movie, pk=int(movie_id))
+
+        questions = (
+            QuizQuestion.objects.filter(movie=movie)
+            .prefetch_related("choices")
+            .order_by("id")
+        )
+
+        result = []
+        for q in questions:
+            result.append(
+                {
+                    "question_id": q.id,
+                    "prompt": q.prompt,
+                    "choices": [
+                        {
+                            "choice_id": c.id,
+                            "text": c.text,
+                            "is_correct": c.is_correct,
+                        }
+                        for c in q.choices.all()
+                    ],
+                }
+            )
+
+        return Response({"questions": result})
+        
     def post(self, request):
-        id = request.data.get('id')
-        curriculum = Curriculum.objects.get(id=id)
+        curriculum_id = request.data.get('id')
+        curriculum = Curriculum.objects.get(id=curriculum_id)
         movie_titles = request.data.get('movie_titles', [])
         quizes = request.data.get('quizes', [])
         print(quizes)
@@ -135,17 +170,26 @@ class QuizBulkCreateView(APIView):
         try:
             for i in range(len(movie_titles)):
                 movie = Movie.objects.get(curriculum=curriculum, title=movie_titles[i])
+                if len(quizes[i]) == 0:
+                    continue
 
-                for quize in quizes[i]:
+                for quiz in quizes[i]:
                     # クイズ作成
                     question = QuizQuestion.objects.create(
                         movie=movie,
-                        prompt=quize['question']
+                        prompt=quiz['question']
                     )
 
-                    correct_answer = quize['answer'].strip()
+                    if type(quiz['ansewr']) == str:
+                        correct_answer = quiz['answer'].strip()
+                    else:
+                        continue
 
-                    for choice_text in quize['choices']:
+                    choices = [choice.strip() for choice in quiz['choice']]
+                    if correct_answer not in choices:
+                        continue
+
+                    for choice_text in quiz['choices']:
                         is_correct = (choice_text.strip() == correct_answer)
                         QuizChoice.objects.create(
                             question=question,

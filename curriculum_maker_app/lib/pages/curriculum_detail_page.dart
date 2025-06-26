@@ -4,6 +4,7 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'curriculum_info_page.dart';
 import 'home_page.dart';
+import 'quiz_page.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
   final Map<String, dynamic> curriculum;
@@ -155,7 +156,33 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        title: Text(title),
+
+        // -----------------------------
+        // ① タイトル行を Row で拡張
+        // -----------------------------
+        title: Row(
+          children: [
+            Expanded(child: Text(title)),
+
+            // 確認問題リンク
+            TextButton(
+              onPressed: () {
+                final movieId = movies[index]['id'] as int;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => QuizPage(movieId: movieId),
+                  ),
+                );
+              },
+              child: const Text(
+                '確認問題',
+                style: TextStyle(decoration: TextDecoration.underline),
+              ),
+            ),
+          ],
+        ),
+
         trailing: Checkbox(
           value: isCheckedList[index],
           onChanged: (bool? value) async {
@@ -164,7 +191,6 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
             // 星いくつかを尋ねる
             final rating = await _showRatingDialog();
             if (rating == null) return; // キャンセル
-
 
             setState(() {
               isCheckedList[index] = newStatus;
@@ -185,6 +211,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage> {
             }
           },
         ),
+
+        // YouTube 動画ダイアログ
         onTap: () {
           if (videoId != null) {
             _showYoutubeDialog(videoId);

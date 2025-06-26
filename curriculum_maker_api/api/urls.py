@@ -15,5 +15,5 @@ urlpatterns = [
     path('movie/<int:pk>/', MovieView.as_view()),
     path('movie/', MovieView.as_view()),
     path('feedback/', FeedbackView.as_view()),
-    path('quize/', QuizBulkCreateView.as_view()),
+    path('quiz/', QuizBulkCreateView.as_view()),
 ]

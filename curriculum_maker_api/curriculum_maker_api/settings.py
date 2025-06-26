@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "35.243.72.181",   # ← これを追加
+    "www.curriculummaker.dev",
 ]
 
 
