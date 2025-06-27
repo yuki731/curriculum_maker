@@ -176,7 +176,7 @@ async def gen(user_request: gen_schema.UserRequest):
                 print(entry)
         else:
             print("字幕が存在しません。")
-            rm_list.append(i)
+            quizes.append([])
             continue
             
 
