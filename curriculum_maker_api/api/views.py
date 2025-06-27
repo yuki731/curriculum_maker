@@ -167,26 +167,34 @@ class QuizBulkCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            for i in range(len(movie_titles)):
-                movie = Movie.objects.get(curriculum=curriculum, title=movie_titles[i])
-                if len(quizes[i]) == 0:
-                    continue
+        errors = []  # ← エラーを集める
 
-                for quiz in quizes[i]:
-                    # クイズ作成
+        for i in range(len(movie_titles)):
+            try:
+                movie = Movie.objects.get(curriculum=curriculum, title=movie_titles[i])
+            except Movie.DoesNotExist:
+                errors.append(f"Movie '{movie_titles[i]}' が見つかりません")
+                continue
+
+            if not quizes[i]:
+                continue
+
+            for quiz in quizes[i]:
+                question = None
+                try:
                     question = QuizQuestion.objects.create(
                         movie=movie,
                         prompt=quiz['question']
                     )
 
-                    if type(quiz['ansewr']) == str:
-                        correct_answer = quiz['answer'].strip()
-                    else:
+                    correct_answer = quiz['answer'].strip() if isinstance(quiz['answer'], str) else None
+                    if not correct_answer:
+                        errors.append(f"正解が不正または空: {quiz}")
                         continue
 
-                    choices = [choice.strip() for choice in quiz['choice']]
+                    choices = [choice.strip() for choice in quiz['choices']]
                     if correct_answer not in choices:
+                        errors.append(f"正解 '{correct_answer}' が選択肢に含まれていません")
                         continue
 
                     for choice_text in quiz['choices']:
@@ -196,18 +204,20 @@ class QuizBulkCreateView(APIView):
                             text=choice_text,
                             is_correct=is_correct
                         )
-        except Movie.DoesNotExist:
-            return Response(
-                {"detail": f"Movie '{movie_titles[i]}' が見つかりません"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except KeyError as e:
-            return Response(
-                {"detail": f"リクエストに '{str(e)}' が含まれていません"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                except KeyError as e:
+                    if question:
+                        question.delete()
+                    errors.append(f"クイズの構造が不正: キー '{e}' がありません（{quiz}）")
+                    continue
+
         print('登録完了')
 
-        return Response({"detail": "クイズ登録に成功しました"}, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "detail": "登録処理が完了しました",
+                "errors": errors  # 必要に応じてエラー内容も返す
+            },
+            status=status.HTTP_200_OK if not errors else status.HTTP_207_MULTI_STATUS
+        )
 
         

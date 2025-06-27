@@ -12,10 +12,10 @@ from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, No
 import curriculum_maker_api.api.youtube_to_db.getYoutube as getYoutube
 import curriculum_maker_api.api.youtube_to_db.updateChromaDB as updateChromaDB
 
-YOUTUBE_API_KEY = ""
-GEMINI_API_KEY = ""
-PROJECT_ID = ""
-REGION = ""
+YOUTUBE_API_KEY = "AIzaSyBgZztR5XVMwgdbRAjpoirSO-TrkwXPLVU"
+GEMINI_API_KEY = "AIzaSyBgZztR5XVMwgdbRAjpoirSO-TrkwXPLVU"
+PROJECT_ID = "amazing-hub-463006-s5"
+REGION = "asia-northeast1"
 PERSIST_DIRECTORY = ""
 COLLECTION_NAME = "youtube_videos_vertex_ai_test20250625"
 DRF_BASE   = "http://127.0.0.1:8000"
