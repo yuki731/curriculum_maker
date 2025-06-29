@@ -52,6 +52,7 @@
 
     ```sh
     cd curriculum_maker/curriculum_maker_api/
+    python manage.py makemigrations
     python manage.py migrate
     ```
 
@@ -67,8 +68,8 @@
 - FastAPIの起動
 
     ```sh
-    cd curriculum_maker/curriculum_maker_api/
-    uvicorn agent_api.main:app —p 7000
+    cd curriculum_maker/
+    uvicorn agent_api.main:app -—port 7000
     ```
 
 - Flutterの起動
